@@ -1,3 +1,3 @@
 # SOLMAE
-SOLMAE Algorithm
-Storing the Files<br/> required for the SOLMAE algorithm
+SOLMAE Algorithm<br/>
+Storing the Files required for the SOLMAE algorithm
