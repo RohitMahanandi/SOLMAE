@@ -10,12 +10,9 @@ double assign() {
     return k;
 }
 
-vector <double> unifcrown() {
-    double R_min, R_max;
-    cout << "Enter the value of R-: " ;
-    cin >> R_min;
-    cout << endl << "Enter the value of R+: ";
-    cin >> R_max;
+vector <double> unifcrown(double R_min,double R_max) {
+    
+    
     double mu_x,mu_y;
     double mu_row;
 
