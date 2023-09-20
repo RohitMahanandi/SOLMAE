@@ -11,6 +11,7 @@ double taking_input() {
 int main() {
     double R_min = taking_input();
     double R_max = taking_input();
+    //still value of d has to be taken manually
    
     for (int i = 0; i < d/2; i++) {
         vector <double> wow = unifcrown(R_min,R_max);
