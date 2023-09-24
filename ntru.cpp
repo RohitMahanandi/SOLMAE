@@ -2,8 +2,12 @@
 #include <vector>
 #include <cmath>
 #include <complex>
+#include "fft.hpp"
+#include "samplerz.hpp"
+#include "ntt.hpp"
 
-const int q = 12 * 1024 + 1;
+
+//  int q = 12 * 1024 + 1;
 
 typedef std::vector<int> Polynomial;
 typedef std::vector<std::complex<double>> ComplexPolynomial;
@@ -114,8 +118,8 @@ Polynomial reduce(const Polynomial &f, const Polynomial &g, Polynomial F, Polyno
                                       bitsize(*std::min_element(g.begin(), g.end())),
                                       bitsize(*std::max_element(g.begin(), g.end()))}));
 
-    Polynomial f_adjust(n);
-    Polynomial g_adjust(n);
+    ComplexPolynomial f_adjust(n);
+    ComplexPolynomial g_adjust(n);
     for (int i = 0; i < n; i++) {
         f_adjust[i] = f[i] >> (size - 53);
         g_adjust[i] = g[i] >> (size - 53);
@@ -133,8 +137,8 @@ Polynomial reduce(const Polynomial &f, const Polynomial &g, Polynomial F, Polyno
             break;
         }
 
-        Polynomial F_adjust(n);
-        Polynomial G_adjust(n);
+        ComplexPolynomial F_adjust(n);
+        ComplexPolynomial G_adjust(n);
         for (int i = 0; i < n; i++) {
             F_adjust[i] = F[i] >> (Size - 53);
             G_adjust[i] = G[i] >> (Size - 53);
@@ -147,17 +151,19 @@ Polynomial reduce(const Polynomial &f, const Polynomial &g, Polynomial F, Polyno
         ComplexPolynomial num_fft = add_fft(mul_fft(Fa_fft, adj_fft(fa_fft)), mul_fft(Ga_fft, adj_fft(ga_fft)));
 
         ComplexPolynomial k_fft = div_fft(num_fft, den_fft);
-        Polynomial k = ifft(k_fft);
+        ComplexPolynomial k = ifft(k_fft);
+        Polynomial k2;
         for (int i = 0; i < n; i++) {
-            k[i] = static_cast<int>(round(k[i]));
+            k2[i] = static_cast<int>(round(real(k[i])));
         }
+
 
         if (std::all_of(k.begin(), k.end(), [](int elt) { return elt == 0; })) {
             break;
         }
 
-        Polynomial fk = karamul(f, k);
-        Polynomial gk = karamul(g, k);
+        Polynomial fk = karamul(f, k2);
+        Polynomial gk = karamul(g, k2);
 
         for (int i = 0; i < n; i++) {
             F[i] -= fk[i] << (Size - size);
@@ -209,7 +215,7 @@ double sqnorm(const Polynomial &poly) {
     return result;
 }
 
-double sqnorm(const std::vector<Polynomial> &matrix) {
+double gs_norm(const std::vector<Polynomial> &matrix) {
     double result = 0.0;
     for (const Polynomial &poly : matrix) {
         result += sqnorm(poly);
@@ -242,8 +248,12 @@ Polynomial ntru_gen(int n) {
     while (true) {
         Polynomial f = gen_poly(n);
         Polynomial g = gen_poly(n);
-
-        if (gs_norm(f, g, q) > (1.17 * 1.17 * q)) {
+        std:: vector <Polynomial> matrix;
+        matrix.push_back(f);
+        matrix.push_back(g);
+        //matrix.push_back(q);
+        vector<int>f_ntt = ntt(f);
+        if (gs_norm(matrix) > (1.17 * 1.17 * q)) {
             continue;
         }
 
